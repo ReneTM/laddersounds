@@ -1,0 +1,11 @@
+"AddonInfo"
+{
+     addonSteamAppID         "550"
+     addontitle              "Laddersound (vscript)"
+     addonversion            ""
+     addontagline            ""
+     addonauthor             "ReneTM"
+     addonURL0               ""
+     addonDescription        ""
+}
+ 

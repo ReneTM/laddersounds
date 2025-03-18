@@ -2,23 +2,41 @@
 	
 	botsEmitSound = true,
 	
-	ladderMinStepWidth  = 30,
-	
 	ladderSounds = [
 		"player/footsteps/survivor/walk/ladder1.wav",
 		"player/footsteps/survivor/walk/ladder2.wav",
 		"player/footsteps/survivor/walk/ladder3.wav",
 		"player/footsteps/survivor/walk/ladder4.wav"
-	]
+	],
+
+	thinkTimerName = "ladder_think_timer",
+
+	// Returns the stepwidth of a player
+	// Access with player class enum
+	// Dont access index 0
 	
+	playerStepWidth = [
+		null,
+		32, // Smoker
+		40, // Boomer
+		32, // Hunter
+		32, // Spitter
+		25, // Jockey
+		40, // Charger
+		null, // Witch
+		40, // Tank
+		32	// Survivor
+	]
 }
+
+
 
 // Creates the think timer which calls "Think()" every tick
 // ----------------------------------------------------------------------------------------------------------------------------
 
 function createThinkTimer(){
 	local timer = null;
-	while(timer = Entities.FindByName(null, "thinkTimer")){
+	while(timer = Entities.FindByName(null, L4LADD3R.thinkTimerName)){
 		timer.Kill()
 	}
 	timer = SpawnEntityFromTable("logic_timer", { targetname = "thinkTimer", RefireTime = 0.01 })
@@ -32,13 +50,13 @@ function createThinkTimer(){
 	EntFire("!self", "Enable", null, 0, timer)
 }
 
-foreach(sound in ladderSounds){
+foreach(sound in L4LADD3R.ladderSounds){
 	PrecacheSound(sound)
 }
 
 ::GetRandomLadderSound <- function(){
-	local randomInt = RandomInt(0, ladderSounds.len() - 1)
-	local randomSound = ladderSounds[randomInt]
+	local randomInt = RandomInt(0, L4LADD3R.ladderSounds.len() - 1)
+	local randomSound = L4LADD3R.ladderSounds[randomInt]
 	return randomSound
 }
 
@@ -69,15 +87,15 @@ function Think(){
 			scope["player_previous_ladder_pos"] <- ent.GetOrigin()
 			scope["player_previous_ladder_state"] <- false
 			scope["player_traveled_ladder_distance"] <- 0.0
-			//printl("keys validated")
+			// printl("keys validated")
 			continue
 		}
 		
 		local currentPos = ent.GetOrigin()
 		local travelDistance = (currentPos - scope["player_previous_ladder_pos"]).Length()
 		
-		printl("Distance moved between ticks: " + travelDistance)
-		printl("Distance traveled on ladder:  " + scope["player_traveled_ladder_distance"])
+		// printl("Distance moved between ticks: " + travelDistance)
+		// printl("Distance traveled on ladder:  " + scope["player_traveled_ladder_distance"])
 		
 		// Start-event
 		if(scope["player_previous_ladder_state"] == false && playerIsUsingLadder == true){
@@ -89,14 +107,22 @@ function Think(){
 			PlayerLadderUseEnd(ent)
 		}
 		
+		// Dont play sounds for ghosts
+		if(ent.IsGhost()){
+			continue
+		}
+
 		if(travelDistance <= 0.0){
 			continue
 		}
 		
+		local playerClass = ent.GetZombieType()
+		local playerStepWidth = L4LADD3R.playerStepWidth[playerClass];
+
 		if(playerIsUsingLadder){
 			// Addup traveled distance
 			scope["player_traveled_ladder_distance"] += travelDistance
-			if(scope["player_traveled_ladder_distance"] >= L4LADD3R.ladderMinStepWidth){
+			if(scope["player_traveled_ladder_distance"] >= playerStepWidth){
 				local randomSound = GetRandomLadderSound()
 				EmitAmbientSoundOn(randomSound, 1, 110, 100, ent)
 				scope["player_traveled_ladder_distance"] = 0.0
@@ -114,7 +140,7 @@ function Think(){
 	local scope = GetValidatedScriptScope(ent);
 	scope["player_previous_ladder_state"] <- true
 	scope["player_traveled_ladder_distance"] = 0
-	//printl("Player started using a ladder")
+	// printl("Player started using a ladder")
 }
 
 ::PlayerLadderUseEnd <- function(ent){
@@ -124,7 +150,7 @@ function Think(){
 	local scope = GetValidatedScriptScope(ent);
 	scope["player_previous_ladder_state"] <- false
 	scope["player_traveled_ladder_distance"] = 0
-	//printl("Player stopped using a ladder")
+	// printl("Player stopped using a ladder")
 }
 
 

@@ -1,3 +1,4 @@
+
 ::L4LADD3R <- {
 	
 	botsEmitSound = true,
@@ -39,7 +40,7 @@ function createThinkTimer(){
 	while(timer = Entities.FindByName(null, L4LADD3R.thinkTimerName)){
 		timer.Kill()
 	}
-	timer = SpawnEntityFromTable("logic_timer", { targetname = "thinkTimer", RefireTime = 0.01 })
+	timer = SpawnEntityFromTable("logic_timer", { targetname = "thinkTimer", RefireTime = 0 })
 	timer.ValidateScriptScope()
 	timer.GetScriptScope()["scope"] <- this
 
@@ -171,4 +172,51 @@ function Think(){
 }
 
 
+// Check if volumes intersect
+::volumesAreIntersecting <- function(entity1, entity2) {
+	
+	local entity1Min = NetProps.GetPropVector(entity1, "m_Collision.m_vecMins")
+	local entity1Max = NetProps.GetPropVector(entity1, "m_Collision.m_vecMaxs")
+	local entity2Min = NetProps.GetPropVector(entity2, "m_Collision.m_vecMins")
+	local entity3Max = NetProps.GetPropVector(entity2, "m_Collision.m_vecMaxs")
+	
+	return (
+	entity1Min.x <= entity2Max.x &&
+	entity1Max.x >= entity1Min.x &&
+	entity1Min.y <= entity2Max.y &&
+	entity1Max.y >= entity1Min.y &&
+	entity1Min.z <= entity2Max.z &&
+	entity1Max.z >= entity2Min.z);
+}
+
+
+::getAllLadders <- function(){
+	local ladders = [];
+	local ent = null;
+	while(ent = Entities.FindByClassname(ent, "func_simpleladder")){
+		ladders.push(ent);
+	}
+	return ladders;
+}
+
+::getCurrentLadderOfPlayer <- function(player){
+	local playerIsUsingLadder = (NetProps.GetPropInt(player, "movetype") == 9)
+	if(playerIsUsingLadder == false) return;
+	local ladders = getAllLadders();
+	foreach(ent in ladders){
+		if(volumesAreIntersecting(player, ent)){
+			return ent;
+		}
+	}
+}
+
 createThinkTimer();
+
+
+printl("-------------------------------------------------")
+printl("-                                               -")
+printl("-                                               -")
+printl("-       LADDER CLIMBING SOUNDS BY RENETM        -")
+printl("-                     LOADED                    -")
+printl("-                                               -")
+printl("-------------------------------------------------")
